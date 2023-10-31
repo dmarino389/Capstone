@@ -1,82 +1,48 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
-from werkzeug.security import generate_password_hash
-
 db = SQLAlchemy()
 
-followers = db.Table('followers', 
-    db.Column('follower_id', db.Integer, db.ForeignKey('user.id'), nullable=False),
-    db.Column('followed_id', db.Integer, db.ForeignKey('user.id'), nullable=False)
-    )
-
-
-class Product(db.Model):
-  id = db.Column(db.Integer, primary_key=True)
-  name = db.Column(db.String(100), nullable = False)
-  description = db.Column(db.String(500))
-  img_url = db.Column(db.String, nullable = False)
-
-
-  def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'description': self.description,
-            'img_url': self.img_url
-        }
-  
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(45), nullable=False, unique=True)
-    email = db.Column(db.String(100), nullable=False, unique=True)
-    password = db.Column(db.String, nullable=False)
-    date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
-    first_name = db.Column(db.String(45))
-    
-    posts = db.relationship("Post", backref='author')
-    following = db.relationship(
-        'User',
-        backref='followers',
-        secondary='followers',
-        primaryjoin=(followers.c.follower_id == id),
-        secondaryjoin=(followers.c.followed_id == id)
-    )
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    hashed_password = db.Column(db.String(128), nullable=False)
+    bookings = db.relationship('Booking', backref='user', lazy=True)
 
-class Post(db.Model):
+ 
+
+class Hotel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
-    img_url = db.Column(db.String, nullable=False)
-    caption = db.Column(db.String(500))
-    date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
-    last_updated = db.Column(db.DateTime)
+    name = db.Column(db.String(100), nullable=False)
+    location = db.Column(db.String(200), nullable=False)
+    rooms = db.relationship('Room', backref='hotel', lazy=True)
+
+class Room(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    number = db.Column(db.String(20), nullable=False)
+    floor = db.Column(db.Integer, nullable=False)
+    bed_type = db.Column(db.String(50), nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    hotel_id = db.Column(db.Integer, db.ForeignKey('hotel.id'), nullable=False)
+    bookings = db.relationship('Booking', backref='room', lazy=True)
+
+class Booking(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    check_in = db.Column(db.DateTime, nullable=False)
+    check_out = db.Column(db.DateTime, nullable=False)
+    guest_number = db.Column(db.Integer, nullable=False)
+    total_price = db.Column(db.Float, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    room_id = db.Column(db.Integer, db.ForeignKey('room.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    likers = db.relationship("User", backref='liked_posts', secondary='like')
+class Review(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    rating = db.Column(db.Integer, nullable=False)
+    comment = db.Column(db.Text, nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    hotel_id = db.Column(db.Integer, db.ForeignKey('hotel.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    def __init__(self, title, img_url, caption, user_id):
-        self.title = title
-        self.img_url = img_url
-        self.caption = caption
-        self.user_id = user_id
 
-    def like_count(self):
-        return len(self.likers)
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'title': self.title,
-            'caption': self.caption,
-            'img_url': self.img_url,
-            'user_id': self.user_id,
-            'author': self.author.username,
-            'date_created': self.date_created,
-            'last_updated': self.last_updated,
-            'like_count': self.like_count(),
-        }
-
-like = db.Table('like',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), nullable=False, primary_key=True),
-    db.Column('post_id', db.Integer, db.ForeignKey('post.id'), nullable=False, primary_key=True),
-)
