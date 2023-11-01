@@ -33,3 +33,16 @@ class Like(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     post_id = db.Column(db.Integer, db.ForeignKey('destination_post.id'), primary_key=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+
+class UserProfile(db.Model):
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    bio = db.Column(db.Text, nullable=True)
+    profile_picture = db.Column(db.String(255), nullable=True)
+    # ... other profile fields ...
+
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    post_id = db.Column(db.Integer, db.ForeignKey('destination_post.id'))
+    author_id = db.Column(db.Integer, db.ForeignKey('user.id'))
