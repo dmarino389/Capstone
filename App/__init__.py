@@ -17,16 +17,20 @@ def create_app(config_class=Config):
     moment = Moment(app)  # Manages date and time
 
     # Register Blueprints
-    from app.auth import auth as auth_blueprint
-    app.register_blueprint(auth_blueprint, url_prefix='/auth')
+    # from app.auth import auth as auth_blueprint
+    # app.register_blueprint(auth_blueprint, url_prefix='/auth')
 
-    from app.hotel import hotel as hotel_blueprint
-    app.register_blueprint(hotel_blueprint, url_prefix='/hotel')
+    # from app.hotel import hotel as hotel_blueprint
+    # app.register_blueprint(hotel_blueprint, url_prefix='/hotel')
 
-    from app.user import user as user_blueprint
-    app.register_blueprint(user_blueprint, url_prefix='/user')
+    # from app.user import user as user_blueprint
+    # app.register_blueprint(user_blueprint, url_prefix='/user')
+
+    from app.api import api as api_blueprint
+    app.register_blueprint(api_blueprint, url_prefix = '/api')
 
     return app
 
 # Outside the create_app function, you instantiate the app
 app = create_app()
+
